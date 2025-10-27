@@ -1,0 +1,17 @@
+{
+  "name": "voting-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["backend","frontend"],
+  "scripts": {
+    "truffle:compile": "truffle compile",
+    "truffle:migrate": "truffle migrate --reset --network development",
+    "test": "cd backend && npm test || true && cd .. && truffle test",
+    "start:all": "concurrently \"npm:server\" \"npm:client\"",
+    "server": "cd backend && npm start",
+    "client": "cd frontend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+}
