@@ -7,11 +7,11 @@ contract("Election", accounts => {
 
   it("deploys and allows owner to add candidates and register voters", async () => {
     const instance = await Election.deployed();
-    await instance.addCandidate("Alice", { from: owner });
-    await instance.addCandidate("Bob", { from: owner });
+    await instance.addCandidate("BJP", { from: owner });
+    await instance.addCandidate("Congress", { from: owner });
 
     const c1 = await instance.getCandidate(1);
-    assert.equal(c1[1], "Alice", "candidate 1 should be Alice");
+    assert.equal(c1[1], "BJP", "candidate 1 should be BJP");
 
     await instance.registerVoter(voter1, { from: owner });
     const reg = await instance.registered(voter1);
@@ -30,12 +30,12 @@ contract("Election", accounts => {
     // voter1 casts for candidate 1
     await instance.castVote(1, h1, { from: voter1 });
     let tally = await instance.tally();
-    assert.equal(tally[1][0].toNumber(), 1, "Alice should have 1 vote");
+    assert.equal(tally[1][0].toNumber(), 1, "BJP should have 1 vote");
 
     // voter1 revotes for candidate 2
     await instance.castVote(2, h2, { from: voter1 });
     tally = await instance.tally();
-    assert.equal(tally[1][0].toNumber(), 0, "Alice should have 0 votes after revote");
-    assert.equal(tally[1][1].toNumber(), 1, "Bob should have 1 vote after revote");
+    assert.equal(tally[1][0].toNumber(), 0, "BJP should have 0 votes after revote");
+    assert.equal(tally[1][1].toNumber(), 1, "Congress should have 1 vote after revote");
   });
 });

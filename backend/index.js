@@ -9,8 +9,8 @@ app.use(bodyParser.json());
 
 // in-memory candidates (would be stored on IPFS in production)
 let candidates = [
-  { id: 1, name: 'Alice' },
-  { id: 2, name: 'Bob' }
+  { id: 1, name: 'BJP' },
+  { id: 2, name: 'Congress' }
 ];
 
 // in-memory voter map: address -> { cid, data }
