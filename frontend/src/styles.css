@@ -63,3 +63,9 @@ button{cursor:pointer}
 .toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 14px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.2);max-width:320px}
 .toast.success{background:#065f46}
 .toast.error{background:#7f1d1d}
+
+/* Utilities for long text */
+.mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+.text-clip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.text-wrap{overflow-wrap:anywhere;word-break:break-word}
+.muted-small{color:var(--muted);font-size:12px}

@@ -1,6 +1,8 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
-function Header({ account, onConnect }) {
+function Header({ account, onConnect, user, onLogout }) {
+  const navigate = useNavigate()
   return (
     <header className="card" style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}> 
       <div className="brand">
@@ -11,13 +13,25 @@ function Header({ account, onConnect }) {
         </div>
       </div>
       <div style={{display:'flex',alignItems:'center',gap:10}}>
-        {account ? (
-          <div className="user-info" style={{fontSize:13}}>
-            <span className="muted">Account</span>
-            <div style={{fontWeight:600}}>{account.slice(0,6)}…{account.slice(-4)}</div>
-          </div>
+        {user ? (
+          // Logged in: show masked account + logout
+          <>
+            <div className="user-info" style={{fontSize:13}}>
+              <span className="muted">Account</span>
+              <div style={{fontWeight:600}}>{account ? `${account.slice(0,6)}…${account.slice(-4)}` : '—'}</div>
+            </div>
+            <button
+              className="vote-btn"
+              style={{background:'#ef4444'}}
+              onClick={() => { onLogout && onLogout(); navigate('/'); }}
+            >Logout</button>
+          </>
         ) : (
-          <button className="vote-btn" onClick={onConnect}>Connect Wallet</button>
+          // Not logged in: hide address; allow connect/login actions
+          <>
+            <button className="vote-btn" onClick={onConnect}>{account ? 'Switch/Connect Wallet' : 'Connect Wallet'}</button>
+            <button className="vote-btn" onClick={() => navigate('/')}>Login</button>
+          </>
         )}
       </div>
     </header>
