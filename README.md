@@ -1,4 +1,4 @@
-# Blockchain-based E-Voting Prototype (20-50 users)
+# Blockchain-based E-Voting Prototype (limited users)
 
 This repository is a scaffold for a small-scale blockchain-based e-voting prototype inspired by Estonia and blockchain pilots. It includes a Truffle/Smart Contract project, an Express backend, a minimal React frontend, and a ZoKrates placeholder for zk-SNARK work.
 
