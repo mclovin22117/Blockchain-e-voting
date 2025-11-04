@@ -1,13 +1,32 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const Joi = require('joi');
+require('dotenv').config();
+
 const ipfsClient = require('./ipfs');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+
+// Security middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
+app.use(bodyParser.json({ limit: '10mb' }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
 
 // in-memory candidates (would be stored on IPFS in production)
 let candidates = [
@@ -80,21 +99,33 @@ app.get('/contract_debug', (req, res) => {
   }
 });
 
+// Input validation schemas
+const registerSchema = Joi.object({
+  address: Joi.string().pattern(/^0x[a-fA-F0-9]{40}$/).required(),
+  name: Joi.string().max(100).optional(),
+  meta: Joi.object().optional()
+});
+
 // register a voter: stores the voter metadata on IPFS and keeps a mapping in-memory
 app.post('/register', async (req, res) => {
   try {
-    const { address, name, meta } = req.body;
-    if (!address) return res.status(400).json({ error: 'address required' });
+    // Validate input
+    const { error, value } = registerSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
 
-  const payload = { address, name: name || null, meta: meta || null, ts: Date.now() };
-  console.log('register payload:', payload);
-  const cid = await ipfsClient.add(JSON.stringify(payload));
-  console.log('ipfs cid:', cid);
+    const { address, name, meta } = value;
 
-  voters[address.toLowerCase()] = { cid, data: payload };
-  res.json({ address, cid });
+    const payload = { address, name: name || null, meta: meta || null, ts: Date.now() };
+    console.log('register payload:', payload);
+    const cid = await ipfsClient.add(JSON.stringify(payload));
+    console.log('ipfs cid:', cid);
+
+    voters[address.toLowerCase()] = { cid, data: payload };
+    res.json({ address, cid });
   } catch (err) {
-    console.error(err);
+    console.error('[ERROR] Register:', err.message);
     res.status(500).json({ error: 'register error' });
   }
 });
@@ -149,6 +180,19 @@ app.post('/register/linkWallet', async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
-  console.log('Backend listening on http://localhost:3001');
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('[ERROR]', err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`✓ Backend listening on http://localhost:${PORT}`);
+  console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
 });
