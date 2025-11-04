@@ -16,7 +16,8 @@ Prerequisites
 - Node.js (16+), npm
 - Truffle
 - Ganache (or Ganache CLI) running on `127.0.0.1:7545`
-- (Optional) IPFS daemon on `127.0.0.1:5001` if you want real IPFS storage
+- **IMPORTANT**: Pinata account for production IPFS storage (see `IPFS_SETUP.md`)
+- (Optional) Local IPFS daemon on `127.0.0.1:5001` for development testing
 
 Install dependencies
 
@@ -85,3 +86,41 @@ If you can't install MetaMask on the presentation machine, the UI includes a man
 
 Research alignment
 - Uses Ganache (Ethereum) for a local private chain, Solidity for contracts, React + Web3 for frontend, IPFS for off-chain storage, and a ZoKrates placeholder for zk-SNARKs.
+
+## 🔐 Production Setup
+
+### IPFS Storage (REQUIRED for Real Users)
+This system stores encrypted votes on IPFS for permanent, verifiable storage. For real-world use:
+
+1. **Read the setup guide**: `IPFS_SETUP.md`
+2. **Sign up for Pinata**: https://pinata.cloud (FREE tier: 1GB)
+3. **Get API keys**: https://app.pinata.cloud/developers/api-keys
+4. **Configure backend**: Add keys to `backend/.env`
+5. **Restart backend**: Votes will now be stored permanently on IPFS
+
+**⚠️ Without Pinata**: System uses fake CIDs - NOT suitable for real users!
+
+### Development Workflow
+For daily development with persistent blockchain data:
+- **Read**: `DEVELOPMENT_WORKFLOW.md` - Explains how to use the persistent Ganache database
+- **Key point**: Don't use `--reset` flag after initial setup
+- **Database**: `./ganache_db/` contains all blockchain data
+
+### Security Features
+- ✅ OpenZeppelin contracts (Pausable, ReentrancyGuard)
+- ✅ Voting periods with emergency pause
+- ✅ Rate limiting (100 req/15min per IP)
+- ✅ Input validation (Joi schemas)
+- ✅ Helmet.js security headers
+- ✅ CORS whitelist
+- ✅ Address validation (prevent addresses as candidate names)
+
+### Next Steps for Production
+1. ✅ Set up Pinata (IPFS storage)
+2. ⏳ Deploy to Sepolia testnet
+3. ⏳ Configure environment variables
+4. ⏳ Add monitoring (Winston + Sentry)
+5. ⏳ Write comprehensive tests
+6. ⏳ Deploy to mainnet
+
+See production checklist in conversation history.

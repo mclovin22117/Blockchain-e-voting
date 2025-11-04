@@ -43,15 +43,36 @@ app.get('/candidates', (req, res) => {
   res.json(candidates);
 });
 
-// stub: store encrypted voter data to IPFS and return hash
+// Store encrypted voter data to IPFS and return CID
 app.post('/ipfs/upload', async (req, res) => {
   try {
     const data = req.body;
-    const hash = await ipfsClient.add(JSON.stringify(data));
-    res.json({ hash });
+    if (!data || typeof data !== 'object') {
+      return res.status(400).json({ error: 'Invalid data format' });
+    }
+
+    // Add metadata for better tracking
+    const voteData = {
+      ...data,
+      timestamp: Date.now(),
+      version: '1.0'
+    };
+
+    console.log('📝 Uploading vote to IPFS:', {
+      candidateId: voteData.candidateId,
+      timestamp: new Date(voteData.timestamp).toISOString()
+    });
+
+    const cid = await ipfsClient.add(JSON.stringify(voteData));
+    
+    console.log('✅ Vote stored on IPFS:', cid);
+    res.json({ hash: cid });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'ipfs error' });
+    console.error('❌ IPFS upload error:', err);
+    res.status(500).json({ 
+      error: 'IPFS upload failed',
+      message: err.message 
+    });
   }
 });
 

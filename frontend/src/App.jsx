@@ -7,6 +7,7 @@ import CandidateCard from './components/CandidateCard'
 import Toast from './components/Toast'
 import Admin from './components/Admin'
 import Register from './components/Register'
+import VoteReceipt from './components/VoteReceipt'
 
 function App() {
   const [account, setAccount] = useState(null)
@@ -345,14 +346,15 @@ function App() {
             await pollOnce()
           } catch {}
           setToast({ message: `Vote submitted${cid ? ` (CID: ${cid.slice(0,10)}…)` : ''}. It may take a moment to finalize.`, type: 'success' })
+          setLastVote({ cid, voteHash, candidateId, txHash, timestamp: Date.now(), voterAddress: account })
         } catch (txErr) {
           console.error('on-chain vote error', txErr)
           setToast({ message: `On-chain vote failed: ${txErr?.message || txErr}`, type: 'error' })
         }
       } else {
         setToast({ message: `Vote stored on IPFS (CID: ${cid.slice(0,10)}…)`, type: 'success' })
+        setLastVote({ cid, voteHash, candidateId, timestamp: Date.now(), voterAddress: account })
       }
-      setLastVote({ cid, voteHash, candidateId })
     } catch (e) {
       console.error('vote error', e)
       setToast({ message: `Vote error: ${e.message || e}`, type: 'error' })
@@ -636,16 +638,10 @@ function App() {
             ))}
           </div>
 
-          {lastVote && (
-            <div className="card" style={{marginTop:16}}>
-              <h3 style={{marginTop:0}}>Last vote</h3>
-              <div style={{display:'grid',gap:6}}>
-                <div><b>Candidate ID:</b> {lastVote.candidateId}</div>
-                <div className="mono text-wrap"><b>IPFS CID:</b> {lastVote.cid}</div>
-                <div className="mono text-wrap"><b>Derived hash (for chain):</b> {lastVote.voteHash}</div>
-              </div>
-            </div>
-          )}
+          <VoteReceipt 
+            vote={lastVote} 
+            candidateName={lastVote && chainCandidates.find(c => c.id === lastVote.candidateId)?.name}
+          />
 
           {contractInfo && user && ownerAddress && user.address && ownerAddress && (user.address.toLowerCase() === ownerAddress.toLowerCase()) && !networkMismatch && (
             <Admin
