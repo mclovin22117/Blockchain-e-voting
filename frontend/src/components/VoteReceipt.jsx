@@ -129,7 +129,8 @@ const VoteReceipt = ({ vote, candidateName }) => {
                 wordBreak: 'break-all',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                marginBottom: '8px'
               }}>
                 <span>{vote.cid}</span>
                 <button
@@ -145,6 +146,32 @@ const VoteReceipt = ({ vote, candidateName }) => {
                 >
                   Copy
                 </button>
+              </div>
+              {/* Verify on IPFS Gateway */}
+              <div style={{marginTop: '8px'}}>
+                <a
+                  href={`https://gateway.pinata.cloud/ipfs/${vote.cid}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    background: '#10b981',
+                    color: '#fff',
+                    textDecoration: 'none',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: '500'
+                  }}
+                >
+                  <span>🔍</span>
+                  Verify on IPFS
+                </a>
+                <div style={{fontSize: '11px', color: '#6b7280', marginTop: '6px'}}>
+                  View your vote data on the decentralized IPFS network
+                </div>
               </div>
             </div>
           )}

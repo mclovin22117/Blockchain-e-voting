@@ -24,3 +24,6 @@ frontend/dist/
 
 # Ganache database
 ganache_db/
+
+#secrets
+pinata_secrets.txt

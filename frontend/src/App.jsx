@@ -24,6 +24,10 @@ function App() {
   const [ownerAddress, setOwnerAddress] = useState(null)
   const lastAutoLoginAccount = React.useRef(null)
   const [loginTrigger, setLoginTrigger] = useState(0)
+  
+  // Voting period state
+  const [votingStatus, setVotingStatus] = useState('loading') // 'loading', 'not-set', 'upcoming', 'active', 'ended'
+  const [votingPeriod, setVotingPeriod] = useState(null)
 
   useEffect(() => {
     async function init() {
@@ -135,6 +139,54 @@ function App() {
     }
     loadFromChain()
   }, [contractInfo, lastVote, account])
+
+  // Check voting period status
+  useEffect(() => {
+    async function checkVotingStatus() {
+      if (!contractInfo || !selectedAddress) {
+        setVotingStatus('loading')
+        return
+      }
+      
+      try {
+        const web3 = window.ethereum ? new Web3(window.ethereum) : new Web3('http://127.0.0.1:7545')
+        const election = new web3.eth.Contract(contractInfo.abi, selectedAddress)
+        
+        const votingPeriodSet = await election.methods.votingPeriodSet().call()
+        
+        if (!votingPeriodSet) {
+          setVotingStatus('not-set')
+          setVotingPeriod(null)
+          return
+        }
+        
+        const start = await election.methods.votingStart().call()
+        const end = await election.methods.votingEnd().call()
+        const startNum = Number(start)
+        const endNum = Number(end)
+        
+        setVotingPeriod({ start: startNum, end: endNum })
+        
+        const now = Math.floor(Date.now() / 1000)
+        
+        if (now < startNum) {
+          setVotingStatus('upcoming')
+        } else if (now >= startNum && now <= endNum) {
+          setVotingStatus('active')
+        } else {
+          setVotingStatus('ended')
+        }
+      } catch (e) {
+        console.error('[App] Error checking voting status:', e)
+        setVotingStatus('not-set')
+      }
+    }
+    
+    checkVotingStatus()
+    // Check every 10 seconds to update status in real-time
+    const interval = setInterval(checkVotingStatus, 10000)
+    return () => clearInterval(interval)
+  }, [contractInfo, selectedAddress, lastVote])
 
   // Auto-login when account is connected and owner address is known
   useEffect(() => {
@@ -255,6 +307,15 @@ function App() {
     }
     if (networkMismatch) {
       setToast({ message: `Wrong network: wallet on ${networkMismatch.currentId}, contract on ${networkMismatch.targetId}. Switch network in MetaMask.`, type: 'error' })
+      return
+    }
+    if (votingStatus !== 'active') {
+      const message = votingStatus === 'not-set' 
+        ? 'Voting window has not been set by admin yet' 
+        : votingStatus === 'upcoming'
+        ? 'Voting has not started yet. Please wait.'
+        : 'Voting has ended'
+      setToast({ message, type: 'error' })
       return
     }
     try {
@@ -569,6 +630,18 @@ function App() {
                   )}
                 </div>
               </div>
+              
+              {/* Voting Window Status */}
+              <div>
+                <div className="muted" style={{fontSize:12,marginBottom:4}}>Voting Window</div>
+                <div style={{fontSize:13,background:'#f3f4f6',padding:'6px 10px',borderRadius:6}}>
+                  {votingStatus === 'loading' && <span style={{color:'#6b7280'}}>Checking...</span>}
+                  {votingStatus === 'not-set' && <span style={{color:'#6b7280'}}>⏸️ Not Set</span>}
+                  {votingStatus === 'upcoming' && <span style={{color:'#f59e0b'}}>⏳ Upcoming</span>}
+                  {votingStatus === 'active' && <span style={{color:'#059669'}}>🟢 Active - Voting Open!</span>}
+                  {votingStatus === 'ended' && <span style={{color:'#ef4444'}}>🔴 Ended</span>}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -616,7 +689,7 @@ function App() {
               </div>
             </div>
           )}
-          {contractInfo && !networkMismatch && isRegisteredOnChain === false && (
+          {contractInfo && !networkMismatch && isRegisteredOnChain === false && user && user.role !== 'admin' && (
             <div className="card" style={{marginTop:12, background:'#fef2f2', color:'#7f1d1d'}}>
               This wallet is not registered on-chain. Ask the admin (contract owner) to register you.
             </div>
@@ -626,17 +699,64 @@ function App() {
               No on-chain candidates yet. Ask the admin to add candidates (Login as Admin on the home page), or redeploy the contracts with seeds.
             </div>
           )}
-          <div className="candidate-grid" style={{marginTop:12}}>
-            {(chainCandidates || candidates).map(c => (
-              <CandidateCard 
-                key={c.id} 
-                candidate={c} 
-                onVote={handleVote} 
-                disabled={!account || submitting || (user && user.verified === false)}
-                showVoteCount={user && user.role === 'admin'}
-              />
-            ))}
-          </div>
+          
+          {/* Voting Status Messages for Voters */}
+          {user && user.role !== 'admin' && votingStatus !== 'loading' && votingStatus !== 'active' && (
+            <div className="card" style={{
+              marginTop:12, 
+              background: votingStatus === 'not-set' ? '#eff6ff' : votingStatus === 'upcoming' ? '#fef3c7' : '#fee2e2',
+              border: `2px solid ${votingStatus === 'not-set' ? '#3b82f6' : votingStatus === 'upcoming' ? '#f59e0b' : '#ef4444'}`
+            }}>
+              <div style={{display:'flex',alignItems:'start',gap:12}}>
+                <div style={{fontSize:28}}>
+                  {votingStatus === 'not-set' ? '⏸️' : votingStatus === 'upcoming' ? '⏳' : '🔒'}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:600,fontSize:16,marginBottom:8,color:'#1f2937'}}>
+                    {votingStatus === 'not-set' && '⏸️ Voting Window Not Set'}
+                    {votingStatus === 'upcoming' && '⏳ Voting Starts Soon'}
+                    {votingStatus === 'ended' && '🔒 Voting Has Ended'}
+                  </div>
+                  <div style={{fontSize:14,color:'#4b5563',lineHeight:1.6}}>
+                    {votingStatus === 'not-set' && (
+                      <>
+                        The admin has not set up the voting period yet. 
+                        <br/>Please wait for the admin to start the voting window.
+                      </>
+                    )}
+                    {votingStatus === 'upcoming' && votingPeriod && (
+                      <>
+                        Voting will begin at: <b>{new Date(votingPeriod.start * 1000).toLocaleString()}</b>
+                        <br/>Please check back when voting opens.
+                      </>
+                    )}
+                    {votingStatus === 'ended' && votingPeriod && (
+                      <>
+                        Voting ended at: <b>{new Date(votingPeriod.end * 1000).toLocaleString()}</b>
+                        <br/>Thank you for participating!
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Show candidates only if admin OR voting is active */}
+          {(user && user.role === 'admin') || votingStatus === 'active' ? (
+            <div className="candidate-grid" style={{marginTop:12}}>
+              {(chainCandidates || candidates).map(c => (
+                <CandidateCard 
+                  key={c.id} 
+                  candidate={c} 
+                  onVote={handleVote} 
+                  disabled={!account || submitting || (user && user.verified === false) || votingStatus !== 'active'}
+                  showVoteCount={user && user.role === 'admin'}
+                  isAdmin={user && user.role === 'admin'}
+                />
+              ))}
+            </div>
+          ) : null}
 
           <VoteReceipt 
             vote={lastVote} 

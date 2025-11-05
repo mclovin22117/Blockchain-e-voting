@@ -5,8 +5,9 @@ const https = require('https');
 
 // For production: use Pinata (https://pinata.cloud)
 // For development: fallback to local IPFS or fake CIDs
-// Pinata now uses JWT tokens - the API key IS the JWT token
 const PINATA_JWT = process.env.PINATA_API_KEY;
+const PINATA_API_KEY = process.env.PINATA_API_KEY_LEGACY; // For legacy API
+const PINATA_SECRET_KEY = process.env.PINATA_SECRET_KEY_LEGACY; // For legacy API
 const USE_PINATA = PINATA_JWT && PINATA_JWT.length > 20;
 
 let localClient = null;
@@ -29,36 +30,54 @@ async function initLocalClient() {
 }
 
 // Upload to Pinata (production IPFS pinning service)
-// Uses Pinata's JSON API (simpler than multipart/form-data)
+// Uses Pinata's LEGACY API (pinJSONToIPFS) which is more compatible
 async function uploadToPinata(data) {
   return new Promise((resolve, reject) => {
     const jsonData = JSON.stringify({
       pinataContent: JSON.parse(data),
       pinataMetadata: {
         name: `vote-${Date.now()}.json`
+      },
+      pinataOptions: {
+        cidVersion: 0
       }
     });
+
+    // Try legacy API key/secret authentication if available
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (PINATA_API_KEY && PINATA_SECRET_KEY) {
+      // Use old-style API key + secret
+      console.log('Using legacy API key/secret authentication');
+      headers['pinata_api_key'] = PINATA_API_KEY;
+      headers['pinata_secret_api_key'] = PINATA_SECRET_KEY;
+    } else {
+      // Use JWT Bearer token
+      console.log('Using JWT Bearer token authentication');
+      headers['Authorization'] = `Bearer ${PINATA_JWT}`;
+    }
 
     const options = {
       hostname: 'api.pinata.cloud',
       path: '/pinning/pinJSONToIPFS',
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${PINATA_JWT}`
-      }
+      headers: headers
     };
 
     const req = https.request(options, (res) => {
       let responseData = '';
       res.on('data', (chunk) => { responseData += chunk; });
       res.on('end', () => {
+        console.log(`Pinata response status: ${res.statusCode}`);
         if (res.statusCode === 200) {
           try {
             const json = JSON.parse(responseData);
+            console.log('Pinata response:', JSON.stringify(json, null, 2));
             resolve(json.IpfsHash);
           } catch (e) {
-            reject(new Error('Invalid Pinata response'));
+            reject(new Error(`Invalid Pinata response: ${responseData}`));
           }
         } else {
           reject(new Error(`Pinata error: ${res.statusCode} ${responseData}`));
@@ -66,7 +85,10 @@ async function uploadToPinata(data) {
       });
     });
 
-    req.on('error', reject);
+    req.on('error', (err) => {
+      console.error('Pinata request error:', err);
+      reject(err);
+    });
     req.write(jsonData);
     req.end();
   });

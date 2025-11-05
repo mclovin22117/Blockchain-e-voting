@@ -1,6 +1,6 @@
 import React from 'react'
 
-function CandidateCard({ candidate, onVote, disabled, showVoteCount = false }) {
+function CandidateCard({ candidate, onVote, disabled, showVoteCount = false, isAdmin = false }) {
   return (
     <div className="candidate-card">
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -16,9 +16,12 @@ function CandidateCard({ candidate, onVote, disabled, showVoteCount = false }) {
         )}
       </div>
 
-      <div className="form-row" style={{marginTop:6}}>
-        <button className="vote-btn" disabled={disabled} onClick={() => onVote && onVote(candidate.id)}>Vote</button>
-      </div>
+      {/* Hide vote button for admin */}
+      {!isAdmin && (
+        <div className="form-row" style={{marginTop:6}}>
+          <button className="vote-btn" disabled={disabled} onClick={() => onVote && onVote(candidate.id)}>Vote</button>
+        </div>
+      )}
     </div>
   )
 }

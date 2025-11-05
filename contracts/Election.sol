@@ -104,28 +104,13 @@ contract Election is Pausable, ReentrancyGuard {
     function castVote(uint candidateId, bytes32 voteHash) public onlyRegistered duringVotingPeriod whenNotPaused nonReentrant {
         require(candidateId > 0 && candidateId <= candidatesCount, "invalid candidate");
         require(voteHash != bytes32(0), "invalid vote hash");
+        require(!hasVoted[msg.sender], "already voted");
 
-        if (hasVoted[msg.sender]) {
-            uint prev = votes[msg.sender];
-            if (prev != candidateId) {
-                // revoke previous vote and count new
-                candidates[prev].voteCount -= 1;
-                candidates[candidateId].voteCount += 1;
-                votes[msg.sender] = candidateId;
-                voteHashes[msg.sender] = voteHash;
-                emit VoteCast(msg.sender, candidateId, voteHash);
-            } else {
-                // same candidate: allow updating the hash (e.g., re-upload to IPFS)
-                voteHashes[msg.sender] = voteHash;
-                emit VoteCast(msg.sender, candidateId, voteHash);
-            }
-        } else {
-            hasVoted[msg.sender] = true;
-            votes[msg.sender] = candidateId;
-            voteHashes[msg.sender] = voteHash;
-            candidates[candidateId].voteCount += 1;
-            emit VoteCast(msg.sender, candidateId, voteHash);
-        }
+        hasVoted[msg.sender] = true;
+        votes[msg.sender] = candidateId;
+        voteHashes[msg.sender] = voteHash;
+        candidates[candidateId].voteCount += 1;
+        emit VoteCast(msg.sender, candidateId, voteHash);
     }
 
     function getCandidate(uint id) public view returns (uint, string memory, uint) {

@@ -12,6 +12,12 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
   const [txStatus, setTxStatus] = useState(null) // 'pending', 'success', 'error'
   const [txHash, setTxHash] = useState(null)
   const [txError, setTxError] = useState(null)
+  
+  // Voting period state
+  const [votingStart, setVotingStart] = useState('')
+  const [votingEnd, setVotingEnd] = useState('')
+  const [currentVotingPeriod, setCurrentVotingPeriod] = useState(null)
+  const [votingStatus, setVotingStatus] = useState('not-set') // 'not-set', 'upcoming', 'active', 'ended'
 
   useEffect(() => {
     async function loadOwner() {
@@ -31,6 +37,25 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
         console.log('[Admin] Owner match:', account && o && account.toLowerCase() === o.toLowerCase())
         setOwner(o)
         setIsOwner(account && o && account.toLowerCase() === o.toLowerCase())
+        
+        // Load voting period
+        const start = await election.methods.votingStart().call()
+        const end = await election.methods.votingEnd().call()
+        const periodSet = await election.methods.votingPeriodSet().call()
+        
+        if (periodSet) {
+          setCurrentVotingPeriod({ start: Number(start), end: Number(end) })
+          const now = Math.floor(Date.now() / 1000)
+          if (now < Number(start)) {
+            setVotingStatus('upcoming')
+          } else if (now >= Number(start) && now <= Number(end)) {
+            setVotingStatus('active')
+          } else {
+            setVotingStatus('ended')
+          }
+        } else {
+          setVotingStatus('not-set')
+        }
       } catch (e) {
         console.error('[Admin] Error loading owner:', e)
       }
@@ -87,43 +112,99 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
   }
 
   async function registerVoter() {
-    const voterAddr = voterAddress.trim()
-    if (!voterAddr) {
-      setNote('Enter a wallet address to register')
+    const addr = voterAddress.trim()
+    if (!addr) {
+      setNote('Enter voter address')
       return
     }
-    if (!/^0x[a-fA-F0-9]{40}$/.test(voterAddr)) {
+    // Validate Ethereum address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
       setNote('Invalid Ethereum address format')
       return
     }
+    setNote('')
+    setBusy(true)
+    setTxStatus('pending')
+    setTxHash(null)
+    setTxError(null)
+
     try {
-      setBusy(true)
-      setTxStatus('pending')
-      setTxHash(null)
-      setTxError(null)
-      setNote('')
-      
       const web3 = new Web3(window.ethereum)
       const contractAddr = selectedAddress || contractInfo.address
       const election = new web3.eth.Contract(contractInfo.abi, contractAddr)
-      
-      const receipt = await election.methods.registerVoter(voterAddr).send({ from: account })
+      const receipt = await election.methods.registerVoter(addr).send({from:account,gas:200000})
+      console.log('registerVoter tx:', receipt)
       
       setTxHash(receipt.transactionHash)
       setTxStatus('success')
       setVoterAddress('')
-      setNote('Voter registered successfully!')
+      setNote(`Voter ${addr} registered`)
+      onActionSuccess && onActionSuccess()
       
+      // Auto-hide success after 3 seconds
       setTimeout(() => {
         setTxStatus(null)
-        onActionSuccess && onActionSuccess()
+        setNote('')
       }, 3000)
     } catch (e) {
-      const errorMsg = e.message || String(e)
+      console.error('registerVoter error:', e)
       setTxStatus('error')
-      setTxError(errorMsg)
-      setNote('Failed to register voter')
-      console.error('[Admin] Register voter error:', e)
+      setTxError(e.message)
+      setNote('Registration failed: ' + e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function setVotingPeriod() {
+    if (!votingStart || !votingEnd) {
+      setNote('Enter both start and end times')
+      return
+    }
+    
+    const startTimestamp = Math.floor(new Date(votingStart).getTime() / 1000)
+    const endTimestamp = Math.floor(new Date(votingEnd).getTime() / 1000)
+    const now = Math.floor(Date.now() / 1000)
+    
+    if (startTimestamp < now) {
+      setNote('Start time must be in the future')
+      return
+    }
+    if (endTimestamp <= startTimestamp) {
+      setNote('End time must be after start time')
+      return
+    }
+    
+    setNote('')
+    setBusy(true)
+    setTxStatus('pending')
+    setTxHash(null)
+    setTxError(null)
+
+    try {
+      const web3 = new Web3(window.ethereum)
+      const contractAddr = selectedAddress || contractInfo.address
+      const election = new web3.eth.Contract(contractInfo.abi, contractAddr)
+      const receipt = await election.methods.setVotingPeriod(startTimestamp, endTimestamp).send({from:account,gas:200000})
+      console.log('setVotingPeriod tx:', receipt)
+      
+      setTxHash(receipt.transactionHash)
+      setTxStatus('success')
+      setCurrentVotingPeriod({ start: startTimestamp, end: endTimestamp })
+      setVotingStatus('upcoming')
+      setNote('Voting period set successfully')
+      onActionSuccess && onActionSuccess()
+      
+      // Auto-hide success after 3 seconds
+      setTimeout(() => {
+        setTxStatus(null)
+        setNote('')
+      }, 3000)
+    } catch (e) {
+      console.error('setVotingPeriod error:', e)
+      setTxStatus('error')
+      setTxError(e.message)
+      setNote('Failed to set voting period: ' + e.message)
     } finally {
       setBusy(false)
     }
@@ -149,7 +230,65 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
         <>
           {txStatus && <div style={{marginBottom:12}}><TransactionStatus status={txStatus} hash={txHash} error={txError} /></div>}
           
+          {/* Voting Period Status */}
+          <div style={{marginTop:10, padding:'12px', background: votingStatus === 'active' ? '#d1fae5' : votingStatus === 'ended' ? '#fee2e2' : '#f3f4f6', borderRadius:'8px'}}>
+            <div style={{fontSize:13, fontWeight:600, marginBottom:4}}>
+              Voting Status: {
+                votingStatus === 'not-set' ? '⚪ Not Set' :
+                votingStatus === 'upcoming' ? '🟡 Upcoming' :
+                votingStatus === 'active' ? '🟢 Active' :
+                '🔴 Ended'
+              }
+            </div>
+            {currentVotingPeriod && (
+              <div style={{fontSize:12, color:'#6b7280'}}>
+                Start: {new Date(currentVotingPeriod.start * 1000).toLocaleString()}<br/>
+                End: {new Date(currentVotingPeriod.end * 1000).toLocaleString()}
+              </div>
+            )}
+          </div>
+          
           <div style={{display:'grid',gap:10,marginTop:10}}>
+            {/* Set Voting Period */}
+            <div style={{padding:'12px', background:'#fff7ed', borderRadius:'8px', border:'1px solid #fed7aa'}}>
+              <label className="muted" style={{fontSize:13, fontWeight:600}}>⏰ Set Voting Period</label>
+              <div style={{display:'grid',gap:8,marginTop:8}}>
+                <div>
+                  <label style={{fontSize:12,color:'#6b7280'}}>Start Time</label>
+                  <input 
+                    type="datetime-local" 
+                    value={votingStart} 
+                    onChange={e=>setVotingStart(e.target.value)} 
+                    style={{width:'100%', marginTop:4}} 
+                    disabled={busy || votingStatus === 'active' || votingStatus === 'ended'}
+                  />
+                </div>
+                <div>
+                  <label style={{fontSize:12,color:'#6b7280'}}>End Time</label>
+                  <input 
+                    type="datetime-local" 
+                    value={votingEnd} 
+                    onChange={e=>setVotingEnd(e.target.value)} 
+                    style={{width:'100%', marginTop:4}} 
+                    disabled={busy || votingStatus === 'active' || votingStatus === 'ended'}
+                  />
+                </div>
+                <button 
+                  className="vote-btn" 
+                  onClick={setVotingPeriod} 
+                  disabled={busy || votingStatus === 'active' || votingStatus === 'ended'}
+                  style={{background: votingStatus === 'active' || votingStatus === 'ended' ? '#d1d5db' : undefined}}
+                >
+                  {busy ? 'Setting...' : 'Set Voting Period'}
+                </button>
+                {(votingStatus === 'active' || votingStatus === 'ended') && (
+                  <div style={{fontSize:11,color:'#ef4444'}}>
+                    Cannot change voting period during or after voting
+                  </div>
+                )}
+              </div>
+            </div>
+            
             <div>
               <label className="muted" style={{fontSize:13}}>Add candidate</label>
               <div style={{display:'flex',gap:8,marginTop:6}}>
