@@ -54,11 +54,20 @@ contract Election is Pausable, ReentrancyGuard {
         owner = msg.sender;
     }
 
-    // Set voting period (can only be set once or by owner before voting starts)
+    // Set voting period - can be changed before voting starts or after it ends
     function setVotingPeriod(uint _start, uint _end) public onlyOwner {
         require(_start < _end, "invalid period");
         require(_start >= block.timestamp, "start must be in future");
-        require(!votingPeriodSet || block.timestamp < votingStart, "cannot change during/after voting");
+        
+        // Allow changes only if:
+        // 1. No period set yet, OR
+        // 2. Before current period starts, OR
+        // 3. After current period ends
+        if (votingPeriodSet) {
+            bool beforeStart = block.timestamp < votingStart;
+            bool afterEnd = block.timestamp > votingEnd;
+            require(beforeStart || afterEnd, "cannot change during active voting");
+        }
         
         votingStart = _start;
         votingEnd = _end;
@@ -66,13 +75,34 @@ contract Election is Pausable, ReentrancyGuard {
         
         emit VotingPeriodSet(_start, _end);
     }
+    
+    // Cancel voting period (can only cancel before voting starts)
+    function cancelVotingPeriod() public onlyOwner {
+        require(votingPeriodSet, "no period to cancel");
+        require(block.timestamp < votingStart, "cannot cancel during/after voting");
+        
+        votingPeriodSet = false;
+        votingStart = 0;
+        votingEnd = 0;
+        
+        emit VotingPeriodSet(0, 0);
+    }
 
     function addCandidate(string memory name) public onlyOwner whenNotPaused {
         require(bytes(name).length > 0, "name cannot be empty");
         require(bytes(name).length <= 100, "name too long");
         // Prevent addresses from being used as candidate names
         require(bytes(name).length < 42 || bytes(name)[0] != '0' || bytes(name)[1] != 'x', "invalid name format");
-        require(!votingPeriodSet || block.timestamp < votingStart, "cannot add candidates during/after voting");
+        
+        // Can add candidates if:
+        // 1. No voting period set yet, OR
+        // 2. Before voting starts, OR
+        // 3. After voting ends (for next election)
+        if (votingPeriodSet) {
+            bool beforeStart = block.timestamp < votingStart;
+            bool afterEnd = block.timestamp > votingEnd;
+            require(beforeStart || afterEnd, "cannot add candidates during active voting");
+        }
         
         candidatesCount++;
         candidates[candidatesCount] = Candidate(candidatesCount, name, 0);

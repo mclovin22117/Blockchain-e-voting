@@ -18,6 +18,7 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
   const [votingEnd, setVotingEnd] = useState('')
   const [currentVotingPeriod, setCurrentVotingPeriod] = useState(null)
   const [votingStatus, setVotingStatus] = useState('not-set') // 'not-set', 'upcoming', 'active', 'ended'
+  const [votingPeriodSet, setVotingPeriodSet] = useState(false)
 
   useEffect(() => {
     async function loadOwner() {
@@ -42,6 +43,8 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
         const start = await election.methods.votingStart().call()
         const end = await election.methods.votingEnd().call()
         const periodSet = await election.methods.votingPeriodSet().call()
+        
+        setVotingPeriodSet(periodSet)
         
         if (periodSet) {
           setCurrentVotingPeriod({ start: Number(start), end: Number(end) })
@@ -192,6 +195,7 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
       setTxStatus('success')
       setCurrentVotingPeriod({ start: startTimestamp, end: endTimestamp })
       setVotingStatus('upcoming')
+      setVotingPeriodSet(true)
       setNote('Voting period set successfully')
       onActionSuccess && onActionSuccess()
       
@@ -205,6 +209,47 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
       setTxStatus('error')
       setTxError(e.message)
       setNote('Failed to set voting period: ' + e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function cancelVotingPeriod() {
+    if (!account || !contractInfo) return
+    
+    setNote('')
+    setBusy(true)
+    setTxStatus('pending')
+    setTxHash(null)
+    setTxError(null)
+
+    try {
+      const web3 = new Web3(window.ethereum)
+      const contractAddr = selectedAddress || contractInfo.address
+      const election = new web3.eth.Contract(contractInfo.abi, contractAddr)
+      const receipt = await election.methods.cancelVotingPeriod().send({from:account,gas:100000})
+      console.log('cancelVotingPeriod tx:', receipt)
+      
+      setTxHash(receipt.transactionHash)
+      setTxStatus('success')
+      setCurrentVotingPeriod(null)
+      setVotingStatus('not-set')
+      setVotingPeriodSet(false)
+      setVotingStart('')
+      setVotingEnd('')
+      setNote('Voting period cancelled successfully')
+      onActionSuccess && onActionSuccess()
+      
+      // Auto-hide success after 3 seconds
+      setTimeout(() => {
+        setTxStatus(null)
+        setNote('')
+      }, 3000)
+    } catch (e) {
+      console.error('cancelVotingPeriod error:', e)
+      setTxStatus('error')
+      setTxError(e.message)
+      setNote('Failed to cancel voting period: ' + e.message)
     } finally {
       setBusy(false)
     }
@@ -260,7 +305,7 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
                     value={votingStart} 
                     onChange={e=>setVotingStart(e.target.value)} 
                     style={{width:'100%', marginTop:4}} 
-                    disabled={busy || votingStatus === 'active' || votingStatus === 'ended'}
+                    disabled={busy || votingStatus === 'active'}
                   />
                 </div>
                 <div>
@@ -270,20 +315,42 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
                     value={votingEnd} 
                     onChange={e=>setVotingEnd(e.target.value)} 
                     style={{width:'100%', marginTop:4}} 
-                    disabled={busy || votingStatus === 'active' || votingStatus === 'ended'}
+                    disabled={busy || votingStatus === 'active'}
                   />
                 </div>
-                <button 
-                  className="vote-btn" 
-                  onClick={setVotingPeriod} 
-                  disabled={busy || votingStatus === 'active' || votingStatus === 'ended'}
-                  style={{background: votingStatus === 'active' || votingStatus === 'ended' ? '#d1d5db' : undefined}}
-                >
-                  {busy ? 'Setting...' : 'Set Voting Period'}
-                </button>
-                {(votingStatus === 'active' || votingStatus === 'ended') && (
+                <div style={{display:'flex',gap:8}}>
+                  <button 
+                    className="vote-btn" 
+                    onClick={setVotingPeriod} 
+                    disabled={busy || votingStatus === 'active'}
+                    style={{flex:1, background: votingStatus === 'active' ? '#d1d5db' : undefined}}
+                  >
+                    {busy ? 'Setting...' : votingStatus === 'ended' ? 'Schedule New Period' : 'Set Voting Period'}
+                  </button>
+                  {votingPeriodSet && votingStatus === 'upcoming' && (
+                    <button 
+                      className="vote-btn" 
+                      onClick={cancelVotingPeriod} 
+                      disabled={busy}
+                      style={{background:'#ef4444', minWidth:'auto', padding:'0 20px'}}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+                {votingStatus === 'active' && (
                   <div style={{fontSize:11,color:'#ef4444'}}>
-                    Cannot change voting period during or after voting
+                    Cannot change voting period during active voting
+                  </div>
+                )}
+                {votingStatus === 'ended' && (
+                  <div style={{fontSize:11,color:'#10b981'}}>
+                    You can now schedule a new voting period for the next election
+                  </div>
+                )}
+                {votingStatus === 'upcoming' && (
+                  <div style={{fontSize:11,color:'#f59e0b'}}>
+                    You can cancel or change the period before voting starts
                   </div>
                 )}
               </div>
