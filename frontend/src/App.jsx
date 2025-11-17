@@ -9,6 +9,13 @@ import Admin from './components/Admin'
 import Register from './components/Register'
 import VoteReceipt from './components/VoteReceipt'
 
+// Utility function to truncate Ethereum addresses
+function truncateAddress(address, startChars = 6, endChars = 4) {
+  if (!address) return ''
+  if (address.length <= startChars + endChars) return address
+  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`
+}
+
 function App() {
   const [account, setAccount] = useState(null)
   const [candidates, setCandidates] = useState([])
@@ -560,8 +567,25 @@ function App() {
               <div>
                 <div className="muted" style={{fontSize:12,marginBottom:4}}>Connected Address</div>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
-                  <div className="mono text-clip" style={{flex:1,fontSize:14,background:'#f3f4f6',padding:'6px 10px',borderRadius:6}} title={account || 'Not connected'}>
-                    {account || 'Not connected'}
+                  <div 
+                    className="mono" 
+                    style={{
+                      flex:1,
+                      fontSize:14,
+                      background:'#f3f4f6',
+                      padding:'6px 10px',
+                      borderRadius:6,
+                      cursor: account ? 'pointer' : 'default'
+                    }} 
+                    title={account ? `${account} (click to copy)` : 'Not connected'}
+                    onClick={() => {
+                      if (account) {
+                        navigator.clipboard.writeText(account)
+                        setToast({ message: 'Address copied!', type: 'success' })
+                      }
+                    }}
+                  >
+                    {account ? truncateAddress(account, 10, 8) : 'Not connected'}
                   </div>
                   {user && user.role === 'admin' && (
                     <div style={{padding:'2px 8px',background:'#059669',color:'#fff',borderRadius:999,fontSize:11,fontWeight:700}}>ADMIN</div>
@@ -579,8 +603,22 @@ function App() {
               {ownerAddress && (
                 <div>
                   <div className="muted" style={{fontSize:12,marginBottom:4}}>Contract Owner (Admin)</div>
-                  <div className="mono text-clip" style={{fontSize:13,background:'#f3f4f6',padding:'6px 10px',borderRadius:6}} title={ownerAddress}>
-                    {ownerAddress}
+                  <div 
+                    className="mono" 
+                    style={{
+                      fontSize:13,
+                      background:'#f3f4f6',
+                      padding:'6px 10px',
+                      borderRadius:6,
+                      cursor:'pointer'
+                    }} 
+                    title={`${ownerAddress} (click to copy)`}
+                    onClick={() => {
+                      navigator.clipboard.writeText(ownerAddress)
+                      setToast({ message: 'Owner address copied!', type: 'success' })
+                    }}
+                  >
+                    {truncateAddress(ownerAddress, 10, 8)}
                   </div>
                 </div>
               )}
@@ -589,8 +627,23 @@ function App() {
               {contractInfo && (
                 <div>
                   <div className="muted" style={{fontSize:12,marginBottom:4}}>Contract Address</div>
-                  <div className="mono text-clip" style={{fontSize:13,background:'#f3f4f6',padding:'6px 10px',borderRadius:6}} title={selectedAddress || contractInfo.address}>
-                    {selectedAddress || contractInfo.address}
+                  <div 
+                    className="mono" 
+                    style={{
+                      fontSize:13,
+                      background:'#f3f4f6',
+                      padding:'6px 10px',
+                      borderRadius:6,
+                      cursor:'pointer'
+                    }} 
+                    title={`${selectedAddress || contractInfo.address} (click to copy)`}
+                    onClick={() => {
+                      const addr = selectedAddress || contractInfo.address
+                      navigator.clipboard.writeText(addr)
+                      setToast({ message: 'Contract address copied!', type: 'success' })
+                    }}
+                  >
+                    {truncateAddress(selectedAddress || contractInfo.address, 10, 8)}
                   </div>
                 </div>
               )}
@@ -658,7 +711,7 @@ function App() {
                     You can view candidates, but <b>voting is disabled</b> until the admin approves your registration.
                   </div>
                   <div style={{fontSize:13,marginTop:8,padding:8,background:'#fffbeb',borderRadius:4}}>
-                    <b>Your Wallet:</b> <span className="mono">{account}</span>
+                    <b>Your Wallet:</b> <span className="mono" style={{fontSize:12}}>{truncateAddress(account, 10, 8)}</span>
                   </div>
                   <div style={{fontSize:12,marginTop:6,opacity:0.8}}>
                     Please contact the admin to verify your wallet address.

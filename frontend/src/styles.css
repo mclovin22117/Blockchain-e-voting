@@ -12,13 +12,56 @@
 }
 
 *{box-sizing:border-box}
-html,body,#root{height:100%;}
+html,body,#root{height:100%;min-height:100vh;}
 body{
   margin:0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 100%);
   color: #0f172a;
   -webkit-font-smoothing:antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Blockchain-themed animated background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  opacity: 0.15;
+}
+
+/* Hexagonal grid pattern overlay */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-image: 
+    linear-gradient(30deg, #1e40af10 12%, transparent 12.5%, transparent 87%, #1e40af10 87.5%, #1e40af10),
+    linear-gradient(150deg, #1e40af10 12%, transparent 12.5%, transparent 87%, #1e40af10 87.5%, #1e40af10),
+    linear-gradient(30deg, #1e40af10 12%, transparent 12.5%, transparent 87%, #1e40af10 87.5%, #1e40af10),
+    linear-gradient(150deg, #1e40af10 12%, transparent 12.5%, transparent 87%, #1e40af10 87.5%, #1e40af10),
+    linear-gradient(60deg, #2563eb08 25%, transparent 25.5%, transparent 75%, #2563eb08 75%, #2563eb08),
+    linear-gradient(60deg, #2563eb08 25%, transparent 25.5%, transparent 75%, #2563eb08 75%, #2563eb08);
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+  background-color: #f8fafc;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .app-shell{max-width:1100px;margin:32px auto;padding:24px;}
@@ -30,11 +73,35 @@ body{
 
 .layout{display:grid;grid-template-columns:320px 1fr;gap:20px}
 
-.card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(15,23,42,0.06);}
+.card{
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
 .auth-card{position:sticky;top:20px}
 
 .candidate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.candidate-card{border-radius:10px;padding:16px;background:linear-gradient(180deg, #ffffff, #fbfdff);box-shadow:0 8px 24px rgba(2,6,23,0.04);display:flex;flex-direction:column;gap:12px}
+.candidate-card{
+  border-radius: 10px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(2, 6, 23, 0.06), 0 2px 4px rgba(2, 6, 23, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.candidate-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.1), 0 4px 8px rgba(2, 6, 23, 0.05);
+}
 .candidate-name{font-weight:600;font-size:16px}
 .candidate-meta{color:var(--muted);font-size:13px}
 .vote-btn{background:var(--accent);color:white;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
