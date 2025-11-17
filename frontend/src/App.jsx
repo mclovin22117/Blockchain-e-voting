@@ -35,6 +35,26 @@ function App() {
   // Voting period state
   const [votingStatus, setVotingStatus] = useState('loading') // 'loading', 'not-set', 'upcoming', 'active', 'ended'
   const [votingPeriod, setVotingPeriod] = useState(null)
+  
+  // Dark mode state
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode')
+    return saved ? JSON.parse(saved) : false
+  })
+  
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode')
+    } else {
+      document.body.classList.remove('dark-mode')
+    }
+    localStorage.setItem('darkMode', JSON.stringify(darkMode))
+  }, [darkMode])
+  
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode)
+  }
 
   useEffect(() => {
     async function init() {
@@ -568,13 +588,10 @@ function App() {
                 <div className="muted" style={{fontSize:12,marginBottom:4}}>Connected Address</div>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
                   <div 
-                    className="mono" 
+                    className="mono info-box" 
                     style={{
                       flex:1,
                       fontSize:14,
-                      background:'#f3f4f6',
-                      padding:'6px 10px',
-                      borderRadius:6,
                       cursor: account ? 'pointer' : 'default'
                     }} 
                     title={account ? `${account} (click to copy)` : 'Not connected'}
@@ -588,13 +605,13 @@ function App() {
                     {account ? truncateAddress(account, 10, 8) : 'Not connected'}
                   </div>
                   {user && user.role === 'admin' && (
-                    <div style={{padding:'2px 8px',background:'#059669',color:'#fff',borderRadius:999,fontSize:11,fontWeight:700}}>ADMIN</div>
+                    <div className="badge" style={{background:'#059669'}}>ADMIN</div>
                   )}
                   {user && user.role === 'voter' && user.verified && (
-                    <div style={{padding:'2px 8px',background:'#0284c7',color:'#fff',borderRadius:999,fontSize:11,fontWeight:700}}>VOTER</div>
+                    <div className="badge" style={{background:'#0284c7'}}>VOTER</div>
                   )}
                   {user && user.role === 'voter' && !user.verified && (
-                    <div style={{padding:'2px 8px',background:'#f59e0b',color:'#fff',borderRadius:999,fontSize:11,fontWeight:700}}>PENDING</div>
+                    <div className="badge" style={{background:'#f59e0b'}}>PENDING</div>
                   )}
                 </div>
               </div>
@@ -604,12 +621,9 @@ function App() {
                 <div>
                   <div className="muted" style={{fontSize:12,marginBottom:4}}>Contract Owner (Admin)</div>
                   <div 
-                    className="mono" 
+                    className="mono info-box" 
                     style={{
                       fontSize:13,
-                      background:'#f3f4f6',
-                      padding:'6px 10px',
-                      borderRadius:6,
                       cursor:'pointer'
                     }} 
                     title={`${ownerAddress} (click to copy)`}
@@ -628,12 +642,9 @@ function App() {
                 <div>
                   <div className="muted" style={{fontSize:12,marginBottom:4}}>Contract Address</div>
                   <div 
-                    className="mono" 
+                    className="mono info-box" 
                     style={{
                       fontSize:13,
-                      background:'#f3f4f6',
-                      padding:'6px 10px',
-                      borderRadius:6,
                       cursor:'pointer'
                     }} 
                     title={`${selectedAddress || contractInfo.address} (click to copy)`}
@@ -653,13 +664,13 @@ function App() {
                 <div>
                   <div className="muted" style={{fontSize:12,marginBottom:4}}>Network</div>
                   <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    <div style={{fontSize:13,background:'#f3f4f6',padding:'6px 10px',borderRadius:6,flex:1}}>
+                    <div className="info-box" style={{fontSize:13,flex:1}}>
                       {networkMismatch ? (
-                        <span style={{color:'#dc2626'}}>
+                        <span className="network-error">
                           ⚠️ Mismatch (Wallet: {networkMismatch.currentId}, Contract: {networkMismatch.targetId})
                         </span>
                       ) : (
-                        <span style={{color:'#059669'}}>
+                        <span className="network-ok">
                           ✓ Chain ID: {contractInfo.networkId}
                         </span>
                       )}
@@ -671,13 +682,13 @@ function App() {
               {/* Registration Status */}
               <div>
                 <div className="muted" style={{fontSize:12,marginBottom:4}}>Registration Status</div>
-                <div style={{fontSize:13,background:'#f3f4f6',padding:'6px 10px',borderRadius:6}}>
+                <div className="info-box" style={{fontSize:13}}>
                   {!user ? (
-                    <span style={{color:'#6b7280'}}>Not logged in</span>
+                    <span className="muted">Not logged in</span>
                   ) : user.role === 'admin' ? (
-                    <span style={{color:'#059669'}}>✓ Admin Account</span>
+                    <span className="network-ok">✓ Admin Account</span>
                   ) : user.verified ? (
-                    <span style={{color:'#059669'}}>✓ Verified Voter (Blockchain Registered)</span>
+                    <span className="network-ok">✓ Verified Voter (Blockchain Registered)</span>
                   ) : (
                     <span style={{color:'#f59e0b'}}>⚠️ Pending Admin Verification</span>
                   )}
@@ -687,12 +698,12 @@ function App() {
               {/* Voting Window Status */}
               <div>
                 <div className="muted" style={{fontSize:12,marginBottom:4}}>Voting Window</div>
-                <div style={{fontSize:13,background:'#f3f4f6',padding:'6px 10px',borderRadius:6}}>
-                  {votingStatus === 'loading' && <span style={{color:'#6b7280'}}>Checking...</span>}
-                  {votingStatus === 'not-set' && <span style={{color:'#6b7280'}}>⏸️ Not Set</span>}
+                <div className="info-box" style={{fontSize:13}}>
+                  {votingStatus === 'loading' && <span className="muted">Checking...</span>}
+                  {votingStatus === 'not-set' && <span className="muted">⏸️ Not Set</span>}
                   {votingStatus === 'upcoming' && <span style={{color:'#f59e0b'}}>⏳ Upcoming</span>}
-                  {votingStatus === 'active' && <span style={{color:'#059669'}}>🟢 Active - Voting Open!</span>}
-                  {votingStatus === 'ended' && <span style={{color:'#ef4444'}}>🔴 Ended</span>}
+                  {votingStatus === 'active' && <span className="network-ok">🟢 Active - Voting Open!</span>}
+                  {votingStatus === 'ended' && <span className="network-error">🔴 Ended</span>}
                 </div>
               </div>
             </div>
@@ -842,6 +853,8 @@ function App() {
           ownerAddress={ownerAddress}
           networkMismatch={networkMismatch}
           selectedAddress={selectedAddress}
+          darkMode={darkMode}
+          onToggleDarkMode={toggleDarkMode}
         />
 
         <div className="hero">

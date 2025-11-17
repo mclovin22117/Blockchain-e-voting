@@ -9,6 +9,22 @@
   --success: #10b981;
   --danger: #ef4444;
   --glass: rgba(255,255,255,0.6);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+}
+
+/* Dark mode variables - Inverted to pure black with white text */
+body.dark-mode {
+  --bg: #000000;
+  --card: #0a0a0a;
+  --muted: #d1d5db;
+  --accent: #60a5fa;
+  --accent-600: #3b82f6;
+  --success: #34d399;
+  --danger: #f87171;
+  --glass: rgba(10,10,10,0.9);
+  --text-primary: #ffffff;
+  --text-secondary: #e5e7eb;
 }
 
 *{box-sizing:border-box}
@@ -16,10 +32,11 @@ html,body,#root{height:100%;min-height:100vh;}
 body{
   margin:0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  color: #0f172a;
+  color: var(--text-primary);
   -webkit-font-smoothing:antialiased;
   position: relative;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Blockchain-themed animated background */
@@ -56,6 +73,23 @@ body::after {
   background-size: 80px 140px;
   background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
   background-color: #f8fafc;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode background adjustments */
+body.dark-mode::before {
+  opacity: 0.25;
+}
+
+body.dark-mode::after {
+  background-color: #000000;
+  background-image: 
+    linear-gradient(30deg, #60a5fa20 12%, transparent 12.5%, transparent 87%, #60a5fa20 87.5%, #60a5fa20),
+    linear-gradient(150deg, #60a5fa20 12%, transparent 12.5%, transparent 87%, #60a5fa20 87.5%, #60a5fa20),
+    linear-gradient(30deg, #60a5fa20 12%, transparent 12.5%, transparent 87%, #60a5fa20 87.5%, #60a5fa20),
+    linear-gradient(150deg, #60a5fa20 12%, transparent 12.5%, transparent 87%, #60a5fa20 87.5%, #60a5fa20),
+    linear-gradient(60deg, #3b82f610 25%, transparent 25.5%, transparent 75%, #3b82f610 75%, #3b82f610),
+    linear-gradient(60deg, #3b82f610 25%, transparent 25.5%, transparent 75%, #3b82f610 75%, #3b82f610);
 }
 
 @keyframes gradientShift {
@@ -68,8 +102,17 @@ body::after {
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-600));display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
-.title{font-size:20px;font-weight:700}
-.subtitle{font-size:13px;color:var(--muted)}
+.title{
+  font-size:20px;
+  font-weight:700;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+.subtitle{
+  font-size:13px;
+  color:var(--muted);
+  transition: color 0.3s ease;
+}
 
 .layout{display:grid;grid-template-columns:320px 1fr;gap:20px}
 
@@ -81,7 +124,15 @@ body::after {
   padding: 18px;
   box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+body.dark-mode .card{
+  background: rgba(10, 10, 10, 0.95);
+  box-shadow: 0 8px 32px rgba(96, 165, 250, 0.15), 0 2px 8px rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
 .auth-card{position:sticky;top:20px}
 
 .candidate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
@@ -96,11 +147,22 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease, border-color 0.3s ease;
 }
 .candidate-card:hover{
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(2, 6, 23, 0.1), 0 4px 8px rgba(2, 6, 23, 0.05);
+}
+
+body.dark-mode .candidate-card{
+  background: rgba(10, 10, 10, 0.95);
+  box-shadow: 0 4px 16px rgba(96, 165, 250, 0.15), 0 2px 4px rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+body.dark-mode .candidate-card:hover{
+  box-shadow: 0 8px 24px rgba(96, 165, 250, 0.25), 0 4px 8px rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.4);
 }
 .candidate-name{font-weight:600;font-size:16px}
 .candidate-meta{color:var(--muted);font-size:13px}
@@ -109,10 +171,39 @@ body::after {
 
 .muted{color:var(--muted)}
 
-.user-info{background:linear-gradient(90deg, rgba(37,99,235,0.06), rgba(16,185,129,0.03));padding:12px;border-radius:8px}
+.user-info{
+  background:linear-gradient(90deg, rgba(37,99,235,0.06), rgba(16,185,129,0.03));
+  padding:12px;
+  border-radius:8px;
+  transition: background 0.3s ease;
+}
+
+body.dark-mode .user-info{
+  background:linear-gradient(90deg, rgba(96,165,250,0.2), rgba(52,211,153,0.15));
+}
 
 .form-row{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-input[type=text]{padding:10px;border-radius:8px;border:1px solid #e6e9ef}
+input[type=text], input[type=datetime-local]{
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #e6e9ef;
+  background: #ffffff;
+  color: #0f172a;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode input[type=text],
+body.dark-mode input[type=datetime-local]{
+  background: #0a0a0a;
+  border: 1px solid #404040;
+  color: #ffffff;
+}
+
+body.dark-mode input[type=text]::placeholder,
+body.dark-mode input[type=datetime-local]::placeholder{
+  color: #94a3b8;
+}
+
 button{cursor:pointer}
 
 @media (max-width: 800px){
@@ -122,9 +213,15 @@ button{cursor:pointer}
 
 /* Hero & footer */
 .hero{margin:16px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.hero h1{margin:0;font-size:28px}
-.hero p{margin:6px 0 0;color:var(--muted)}
+.hero h1{margin:0;font-size:28px;color:var(--text-primary);transition:color 0.3s ease}
+.hero p{margin:6px 0 0;color:var(--muted);transition:color 0.3s ease}
 .footer{margin-top:24px;color:var(--muted);font-size:12px;text-align:center}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6{
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
 
 /* Toasts */
 .toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:12px 14px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.2);max-width:320px}
@@ -136,3 +233,60 @@ button{cursor:pointer}
 .text-clip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .text-wrap{overflow-wrap:anywhere;word-break:break-word}
 .muted-small{color:var(--muted);font-size:12px}
+
+/* Info box for addresses and data */
+.info-box{
+  background: #f3f4f6;
+  color: #0f172a;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode .info-box{
+  background: #0a0a0a;
+  color: #ffffff;
+  border: 1px solid #404040;
+}
+
+/* Badge styles */
+.badge{
+  padding: 2px 8px;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Diagnostic strip card */
+.diagnostic-card{
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-mode .diagnostic-card{
+  background: #0a0a0a;
+  border: 1px solid #404040;
+}
+
+/* Network status colors */
+.network-ok{
+  color: #059669;
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .network-ok{
+  color: #34d399;
+}
+
+.network-error{
+  color: #dc2626;
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .network-error{
+  color: #f87171;
+}
