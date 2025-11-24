@@ -8,6 +8,7 @@ import Toast from './components/Toast'
 import Admin from './components/Admin'
 import Register from './components/Register'
 import VoteReceipt from './components/VoteReceipt'
+import config from './config'
 
 // Utility function to truncate Ethereum addresses
 function truncateAddress(address, startChars = 6, endChars = 4) {
@@ -71,7 +72,7 @@ function App() {
       }
       // load candidates from backend
       try {
-        const res = await fetch('http://localhost:3001/candidates')
+        const res = await fetch(`${config.backendUrl}/candidates`)
         const data = await res.json()
         setCandidates(data)
       } catch (e) {
@@ -80,7 +81,7 @@ function App() {
 
       // load contract info if available
       try {
-        const resC = await fetch('http://localhost:3001/contract')
+        const resC = await fetch(`${config.backendUrl}/contract`)
         if (resC.ok) {
           const info = await resC.json()
           setContractInfo(info)
@@ -138,7 +139,7 @@ function App() {
           console.warn('[App] Failed to load owner from wallet provider:', err)
           // fallback: try local HTTP provider against the network-matched address
           try {
-            const w3 = new Web3('http://127.0.0.1:7545')
+            const w3 = new Web3(config.rpcUrl)
             const nid = await w3.eth.net.getId()
             const addrByNet = contractInfo.addressesByNetwork || {}
             const addrFor = addrByNet[nid] || electionAddress
@@ -176,7 +177,7 @@ function App() {
       }
       
       try {
-        const web3 = window.ethereum ? new Web3(window.ethereum) : new Web3('http://127.0.0.1:7545')
+        const web3 = window.ethereum ? new Web3(window.ethereum) : new Web3(config.rpcUrl)
         const election = new web3.eth.Contract(contractInfo.abi, selectedAddress)
         
         const votingPeriodSet = await election.methods.votingPeriodSet().call()
@@ -372,7 +373,7 @@ function App() {
       let cid = null
       try {
         setToast({ message: 'Uploading vote to IPFS…', type: 'info' })
-        const res = await timeoutFetch('http://localhost:3001/ipfs/upload', {
+        const res = await timeoutFetch(`${config.backendUrl}/ipfs/upload`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -467,8 +468,8 @@ function App() {
             method: 'wallet_addEthereumChain',
             params: [{
               chainId: chainIdHex,
-              chainName: 'Ganache Local',
-              rpcUrls: ['http://127.0.0.1:7545','http://127.0.0.1:8545'],
+              chainName: config.chainName,
+              rpcUrls: [config.rpcUrl],
               nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
             }]
           })

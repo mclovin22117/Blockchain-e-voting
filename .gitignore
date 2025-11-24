@@ -6,9 +6,12 @@ npm-debug.log*
 logs
 *.log
 
-# Env
+# Environment variables (NEVER commit these!)
 .env
-.env.*
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
 
 # Build artifacts
 build/
@@ -25,5 +28,8 @@ frontend/dist/
 # Ganache database
 ganache_db/
 
-#secrets
+# Secrets (NEVER commit these!)
 pinata_secrets.txt
+*.pem
+*.key
+private_keys.txt

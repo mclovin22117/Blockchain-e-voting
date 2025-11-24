@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Web3 from 'web3'
 import { useNavigate } from 'react-router-dom'
+import config from '../config'
 
 function Auth({ onLogin }) {
   const navigate = useNavigate()
@@ -38,7 +39,7 @@ function Auth({ onLogin }) {
     let done = false
     // 1) Try backend first
     try {
-      const res = await fetch(`http://localhost:3001/voter/${addr}`)
+      const res = await fetch(`${config.backendUrl}/voter/${addr}`)
       if (res.ok) {
         const data = await res.json()
         setStatus('Found: ' + data.cid)
@@ -50,7 +51,7 @@ function Auth({ onLogin }) {
     // 2) If backend misses, try on-chain allow-list
     if (!done) {
       try {
-        const resC = await fetch('http://localhost:3001/contract')
+        const resC = await fetch(`${config.backendUrl}/contract`)
         if (resC.ok) {
           const info = await resC.json()
           // Pick the correct contract address based on current provider's network
@@ -68,7 +69,7 @@ function Auth({ onLogin }) {
           // If no wallet provider, try local HTTP fallback
           const fallbacks = [
             web3,
-            new Web3('http://127.0.0.1:7545')
+            new Web3(config.rpcUrl)
           ].filter(Boolean)
 
           for (const w3 of fallbacks) {

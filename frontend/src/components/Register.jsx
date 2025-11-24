@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Web3 from 'web3'
 import { useNavigate } from 'react-router-dom'
+import config from '../config'
 
 // Minimal, easy-to-follow 3-step registration UI.
 // Attempts backend endpoints; if missing, falls back to a simple demo OTP.
@@ -18,7 +19,7 @@ function Register() {
   async function sendOtp() {
     setNote('Sending OTP...')
     try {
-      const res = await fetch('http://localhost:3001/register/initOtp', {
+      const res = await fetch(`${config.backendUrl}/register/initOtp`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, mobile, vid })
       })
@@ -33,7 +34,7 @@ function Register() {
   async function verifyOtp() {
     setNote('Verifying OTP...')
     try {
-      const res = await fetch('http://localhost:3001/register/verifyOtp', {
+      const res = await fetch(`${config.backendUrl}/register/verifyOtp`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vid, otp })
       })
@@ -57,7 +58,7 @@ function Register() {
     if (!account) return setNote('Connect your wallet first')
     setNote('Linking wallet to registration...')
     try {
-      const res = await fetch('http://localhost:3001/register/linkWallet', {
+      const res = await fetch(`${config.backendUrl}/register/linkWallet`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vid, address: account })
       })

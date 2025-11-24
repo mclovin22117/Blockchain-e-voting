@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Web3 from 'web3'
 import { TransactionStatus } from './LoadingSpinner'
+import config from '../config'
 
 function Admin({ account, contractInfo, onActionSuccess, networkMismatch, selectedAddress }) {
   const [owner, setOwner] = useState(null)
@@ -28,7 +29,7 @@ function Admin({ account, contractInfo, onActionSuccess, networkMismatch, select
           return
         }
         // prefer wallet provider for tx, but fall back to HTTP for read
-        const web3 = window.ethereum ? new Web3(window.ethereum) : new Web3('http://127.0.0.1:7545')
+        const web3 = window.ethereum ? new Web3(window.ethereum) : new Web3(config.rpcUrl)
         const contractAddr = selectedAddress || contractInfo.address
         console.log('[Admin] Loading owner from contract:', contractAddr)
         const election = new web3.eth.Contract(contractInfo.abi, contractAddr)
