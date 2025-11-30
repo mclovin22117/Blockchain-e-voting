@@ -7,19 +7,13 @@
     "frontend"
   ],
   "scripts": {
-    "truffle:compile": "truffle compile",
-    "truffle:migrate": "truffle migrate --reset --network development",
-    "test": "cd backend && npm test || true && cd .. && truffle test",
     "start:all": "concurrently \"npm:server\" \"npm:client\"",
     "server": "cd backend && npm start",
-    "client": "cd frontend && npm start"
+    "client": "cd frontend && npm start",
+    "test": "cd backend && npm test || true"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
-    "@truffle/hdwallet-provider": "^2.1.15",
-    "concurrently": "^8.0.0",
-    "hardhat": "^3.0.15",
-    "truffle": "^5.11.5"
+    "concurrently": "^8.0.0"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.3"
