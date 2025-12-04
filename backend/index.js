@@ -48,8 +48,8 @@ app.use(limiter);
 
 // in-memory candidates (would be stored on IPFS in production)
 let candidates = [
-  { id: 1, name: 'BJP' },
-  { id: 2, name: 'Congress' }
+  { id: 1, name: 'Alice' },
+  { id: 2, name: 'Bob' }
 ];
 
 // in-memory voter map: address -> { cid, data }
