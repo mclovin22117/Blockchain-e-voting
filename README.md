@@ -48,7 +48,7 @@ Perfect for testing and development without spending real ETH.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/reetik-rana/Blockchain-e-voting.git
+git clone https://github.com/mclovin22117/Blockchain-e-voting.git
 cd Blockchain-e-voting
 
 # 2. Install dependencies
@@ -326,8 +326,8 @@ This project is for educational and research purposes. Use at your own risk.
 
 ## 📧 Contact & Support
 
-- **Issues**: https://github.com/reetik-rana/Blockchain-e-voting/issues
-- **Discussions**: https://github.com/reetik-rana/Blockchain-e-voting/discussions
+- **Issues**: https://github.com/mclovin22117/Blockchain-e-voting/issues
+- **Discussions**: https://github.com/mclovin22117/Blockchain-e-voting/discussions
 
 ---
 
