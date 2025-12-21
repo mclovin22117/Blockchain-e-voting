@@ -348,8 +348,8 @@ This project is for educational and research purposes. Use at your own risk.
 
 ## 📧 Contact & Support
 
-- **Issues**: https://github.com/reetik-rana/Blockchain-e-voting/issues
-- **Discussions**: https://github.com/reetik-rana/Blockchain-e-voting/discussions
+- **Issues**: https://github.com/mclovin22117/Blockchain-e-voting/issues
+- **Discussions**: https://github.com/mclovin22117/Blockchain-e-voting/discussions
 
 ## 📄 License
 
