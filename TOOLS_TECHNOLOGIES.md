@@ -379,7 +379,7 @@ This is a **decentralized e-voting system** built with blockchain technology to 
   - Collaboration
   - Branching and merging
   - History preservation
-- **Repository**: GitHub - `reetik-rana/Blockchain-e-voting`
+- **Repository**: GitHub - `mclovin22117/Blockchain-e-voting`
 - **Use Case**: Source code management, version control
 
 ### **npm (Node Package Manager)**
@@ -803,4 +803,4 @@ The result is a **robust, secure, and user-friendly voting platform** ready for 
 
 **Last Updated**: November 5, 2025  
 **Project**: Blockchain E-Voting System  
-**Repository**: https://github.com/reetik-rana/Blockchain-e-voting
+**Repository**: https://github.com/mclovin22117/Blockchain-e-voting
