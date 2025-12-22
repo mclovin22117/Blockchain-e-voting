@@ -70,7 +70,7 @@ Perfect for testing and development without spending real ETH.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/reetik-rana/Blockchain-e-voting.git
+git clone https://github.com/mclovin22117/Blockchain-e-voting.git
 cd Blockchain-e-voting
 
 # 2. Install dependencies
