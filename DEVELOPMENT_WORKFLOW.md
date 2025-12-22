@@ -82,8 +82,8 @@ npx truffle migrate --reset
 - **Ganache Database**: `./ganache_db/` (DO NOT DELETE during dev)
 - **Chain ID**: 1337 (fixed)
 - **Network ID**: 1337 (fixed)
-- **Admin Account**: `0x491c79f547f83C401B234DfF8E9375E91584717d`
-- **Voter Account (example)**: `0xBA0b09eda4c6bCd4Bed9967702CCA1f4F1aC35f5`
+- **Admin Account**: Account 0 (first account shown in Ganache output)
+- **Voter Accounts**: Accounts 1-9 (use any for testing voters)
 
 ## 🎯 Best Practices
 
