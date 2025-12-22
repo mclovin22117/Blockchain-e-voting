@@ -329,6 +329,10 @@ This project is for educational and research purposes. Use at your own risk.
 - **Issues**: https://github.com/mclovin22117/Blockchain-e-voting/issues
 - **Discussions**: https://github.com/mclovin22117/Blockchain-e-voting/discussions
 
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ---
 
 **Made with ❤️ for transparent and secure voting**
