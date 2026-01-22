@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Web3 from 'web3'
+import { Web3 } from 'web3'
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom'
 import Auth from './components/Auth'
 import Header from './components/Header'
