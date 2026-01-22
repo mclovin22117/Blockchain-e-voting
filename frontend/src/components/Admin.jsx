@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Web3 from 'web3'
+import { Web3 } from 'web3'
 import { TransactionStatus } from './LoadingSpinner'
 import config from '../config'
 
