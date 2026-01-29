@@ -14,6 +14,28 @@ A secure, decentralized e-voting system built on Ethereum. Features admin-contro
 - **Network**: Ethereum Sepolia Testnet
 - **Explorer**: https://sepolia.etherscan.io/address/0xD08Bbdcb80496e4d53a0Ae769b535306Bb513716
 
+## 📸 Screenshots
+
+### Authentication & Wallet Connection
+![Voter Authentication](./screenshots/auth-page.png)
+*MetaMask wallet integration for secure voter authentication*
+
+### Voting Interface
+![Voting Dashboard](./screenshots/voting-page.png)
+*Clean, intuitive interface for casting votes on blockchain*
+
+### Admin Dashboard
+![Admin Panel](./screenshots/admin-panel.png)
+*Comprehensive admin controls for managing elections, candidates, and voters*
+
+### Vote Receipt
+![Transaction Receipt](./screenshots/vote-receipt.png)
+*Blockchain transaction confirmation with IPFS hash for vote verification*
+
+### Smart Contract on Explorer
+![Etherscan Contract](./screenshots/contract-explorer.png)
+*Deployed smart contract on Sepolia Etherscan showing verified transactions*
+
 ## 🏗️ Architecture
 
 - `contracts/` - Solidity smart contract `Election.sol`
